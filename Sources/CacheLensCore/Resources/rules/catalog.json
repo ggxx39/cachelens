@@ -1,0 +1,3641 @@
+{
+  "tools": [
+    {
+      "id": "cursor",
+      "displayNameZH": "Cursor",
+      "displayNameEN": "Cursor",
+      "roots": [
+        {
+          "relative": "Library/Application Support/Cursor",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/Cursor",
+          "category": "caches"
+        },
+        {
+          "relative": ".cursor",
+          "category": "config"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/mcp.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Cursor MCP 服务器配置（可能包含服务授权与密钥）。",
+          "costEN": "Removes Cursor MCP server configuration (may contain credentials/keys).",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/state.vscdb*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "聊天/历史索引库（含 .backup、-wal、-shm）。删除后 Cursor 会话可能永久卡在“Loading Chat…”，且无法从工作区重建索引。",
+          "costEN": "Chat/history index DB (incl. .backup, -wal, -shm). Deleting can leave Cursor stuck on \"Loading Chat…\" forever; the index cannot be rebuilt from workspace DBs.",
+          "recoveryZH": "从废纸篓或 .backup 还原；优先用 Cursor 命令面板的 “Developer: Delete Old Chats” / “GC Agent KV Blobs”，不要直接删这个库文件。",
+          "recoveryEN": "Restore from Trash or the .backup; prefer Cursor's \"Developer: Delete Old Chats\" / \"GC Agent KV Blobs\" commands instead of deleting this DB file."
+        },
+        {
+          "match": "**/snapshots/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "检查点/快照状态（Cursor 会话回退点）。删除后已保存的检查点/快照可能丢失；你的代码与设置通常仍在。Cursor 运行时可能很快重新生成（数天内可堆到上百 GB），建议先退出 Cursor 再处理（进程守卫已有帮助）；这不是失控写入的永久解法，也绝不判为 Safe。",
+          "costEN": "Checkpoint/snapshot state (Cursor session restore points). Deleting may lose saved checkpoints/snapshots; your code and settings are usually kept. Cursor may rapidly recreate these while running (can pile up to hundreds of GB in days)—prefer quitting Cursor first (the process guard already helps); this is not a permanent fix for a runaway writer, and it is never Safe.",
+          "recoveryZH": "从废纸篓还原；建议先退出 Cursor 再清理，避免边删边写反复重建。",
+          "recoveryEN": "Restore from Trash; quit Cursor before cleanup to avoid delete-while-writing churn.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/*.pack",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "快照/检查点 .pack 数据块（Cursor 会话回退状态）。删除后对应检查点可能丢失；代码与设置通常仍在。Cursor 运行时可能很快重新生成并持续膨胀，建议先退出 Cursor 再处理；这不是失控写入的永久解法，也绝不判为 Safe。",
+          "costEN": "Snapshot/checkpoint .pack chunk (Cursor session restore state). Deleting may lose that checkpoint; code and settings are usually kept. Cursor may rapidly recreate and keep growing these while running—prefer quitting Cursor first; this is not a permanent fix for a runaway writer, and it is never Safe.",
+          "recoveryZH": "从废纸篓还原；建议先退出 Cursor 再清理，避免边删边写反复重建。",
+          "recoveryEN": "Restore from Trash; quit Cursor before cleanup to avoid delete-while-writing churn.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/globalStorage/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能包含扩展状态与聊天索引，误删会影响会话恢复。",
+          "costEN": "May contain extension state and chat indexes; deletion can break session recovery.",
+          "recoveryZH": "废纸篓还原；优先用 Cursor 内置清理。",
+          "recoveryEN": "Restore from Trash; prefer Cursor built-in cleanup."
+        },
+        {
+          "match": "**/User/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "包含用户配置与历史相关数据，请逐项确认。",
+          "costEN": "Contains user profile and history-related data; review item by item.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "仅丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable renderer/network caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原；或重新打开 Cursor 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Cursor to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Cursor 版本缓存，下次启动可能重新下载。",
+          "costEN": "Drops Cursor version caches; next launch may re-download.",
+          "recoveryZH": "废纸篓还原，或让 Cursor 自行补齐。",
+          "recoveryEN": "Restore from Trash, or let Cursor refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可能短暂变慢。",
+          "costEN": "Drops GPU cache; may slow briefly.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/DawnGraphiteCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "仅丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable renderer caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原；或重新打开 Cursor 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Cursor to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/DawnWebGPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "仅丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable WebGPU caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原；或重新打开 Cursor 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Cursor to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码缓存，可重建。",
+          "costEN": "Drops code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedProfilesData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的配置缓存，不影响用户设置本体。",
+          "costEN": "Drops rebuildable profile caches; does not remove settings themselves.",
+          "recoveryZH": "废纸篓还原，或让 Cursor 自行补齐。",
+          "recoveryEN": "Restore from Trash, or let Cursor refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/process-monitor/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失进程监控诊断数据，可重建。",
+          "costEN": "Process-monitor diagnostics are lost; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/DIPS*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的跟踪防护存储，通常不影响用户内容。",
+          "costEN": "Drops rebuildable tracking-prevention storage; usually not user content.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失诊断日志。",
+          "costEN": "Diagnostic logs are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/plugins/cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃插件缓存，可重建。",
+          "costEN": "Drops plugin caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "plugins",
+              "projects"
+            ]
+          }
+        },
+        {
+          "match": "projects/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Cursor 独立项目会话与 Agent 工作区上下文，删除后不可恢复。",
+          "costEN": "Cursor per-project session history and Agent workspace context; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原；按项目逐项确认后再清理。",
+          "recoveryEN": "Restore from Trash; review project by project before deleting."
+        },
+        {
+          "match": "ai-tracking/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "AI 代码跟踪数据库，记录代码变更与生成历史。",
+          "costEN": "AI code tracking database containing generation and modification history.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "skills/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义或已安装的 Cursor 技能，删除后需重新配置。",
+          "costEN": "Custom or installed Cursor skills; reconfiguration required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "skills-cursor/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "Cursor 内置与同步技能集，删除后需重新同步。",
+          "costEN": "Cursor skills bundle; re-sync required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "agents/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义 Agent 配置，删除后需重新配置。",
+          "costEN": "Custom agent configurations; reconfiguration required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "rules/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义规则文件 (.mdc 等)。",
+          "costEN": "Custom rule files (.mdc etc).",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "sandbox-policies/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "沙箱安全策略配置。",
+          "costEN": "Sandbox security policy configurations.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "argv.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Cursor 启动参数配置。",
+          "costEN": "Removes Cursor startup argument configuration.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/blob_storage/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能含 Electron blob 数据，误删或影响部分功能。",
+          "costEN": "May contain Electron blob data; deletion can affect some features.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/WebStorage/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能含本地 Web 存储，误删或影响功能。",
+          "costEN": "May contain local web storage; deletion can affect features.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Partitions/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能含 WebView/会话分区数据，请确认。",
+          "costEN": "May contain WebView/session partition data; confirm first.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/IndexedDB/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能含本地索引数据，误删或影响功能。",
+          "costEN": "May contain local index data; deletion can affect features.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Preferences",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Cursor/Electron 偏好设置。",
+          "costEN": "Removes Cursor/Electron preference settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/machineid",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失本机机器标识，可能影响登录态或遥测绑定。",
+          "costEN": "Removes the local machine id; may affect sign-in or telemetry binding.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Backups*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能含工作区备份，请确认后再删。",
+          "costEN": "May contain workspace backups; confirm before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/sentry*",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失 Sentry 诊断/崩溃上报缓存。",
+          "costEN": "Sentry diagnostic/crash-report caches are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedConfigurations*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的配置缓存。",
+          "costEN": "Drops rebuildable configuration caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedExtensionVSIXs*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃已缓存的扩展 VSIX，下次可能重新下载。",
+          "costEN": "Drops cached extension VSIX files; may re-download later.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Cookies*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的 Chromium Cookie 存储，可能需重新登录部分 WebView。",
+          "costEN": "Drops rebuildable Chromium cookie storage; some WebViews may need sign-in again.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Trust Tokens*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的 Trust Tokens 存储。",
+          "costEN": "Drops rebuildable Trust Tokens storage.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Shared Dictionary*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的 Shared Dictionary 压缩字典缓存。",
+          "costEN": "Drops rebuildable Shared Dictionary compression caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/SharedStorage*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的 Shared Storage。",
+          "costEN": "Drops rebuildable Shared Storage.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Session Storage*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的 Session Storage。",
+          "costEN": "Drops rebuildable Session Storage.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Local Storage*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能含本地 Web 存储，误删或影响功能。",
+          "costEN": "May contain local web storage; deletion can affect features.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Network Persistent State*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的网络状态缓存。",
+          "costEN": "Drops rebuildable network persistent state.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/TransportSecurity*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 HSTS/传输安全状态，可重建。",
+          "costEN": "Drops HSTS/transport-security state; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/languagepacks.json",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃语言包索引，下次启动可重建。",
+          "costEN": "Drops language-pack index; rebuildable on next launch.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/code.lock",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃运行时锁文件，可重建。",
+          "costEN": "Drops a runtime lock file; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/*.sock",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 IPC socket，重启后重建。",
+          "costEN": "Drops an IPC socket; recreated after relaunch.",
+          "recoveryZH": "废纸篓还原或重启 Cursor。",
+          "recoveryEN": "Restore from Trash, or relaunch Cursor.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "displayNameZH": "Claude Code",
+      "displayNameEN": "Claude Code",
+      "roots": [
+        {
+          "relative": ".claude",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Caches/claude-cli-nodejs",
+          "category": "caches"
+        },
+        {
+          "relative": "Library/Application Support/Claude",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/com.anthropic.claudefordesktop",
+          "category": "caches"
+        },
+        {
+          "relative": ".claude.json",
+          "category": "config"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/.claude.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Claude Code 全局项目信任、MCP 配置与会话历史索引。",
+          "costEN": "Removes Claude Code global project trust, MCP config, and session history index.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/agent-memory/**",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "Claude Code 子代理长期记忆，删除后不可恢复。",
+          "costEN": "Claude Code subagent long-term memory; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/projects/*/memory/**",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "Claude Code 自动记忆库（含 MEMORY.md 与主题记忆），删除后将永久丢失项目上下文长期记忆。",
+          "costEN": "Claude Code auto-memory directory (incl. MEMORY.md and topic files); deleting permanently loses persistent project memory.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/local-agent-mode-sessions/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "本地 Agent 模式会话历史记录，删除后不可恢复。",
+          "costEN": "Local Agent mode session history; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/plugins/**",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "已安装的 Claude 插件，删除后需重新安装。",
+          "costEN": "Installed Claude plugins; re-installation required.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/.credentials*",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失登录凭证，需要重新认证。",
+          "costEN": "Removes auth credentials; re-authentication required.",
+          "recoveryZH": "废纸篓还原；否则重新登录。",
+          "recoveryEN": "Restore from Trash, otherwise sign in again."
+        },
+        {
+          "match": "**/settings*",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Claude Code 设置。",
+          "costEN": "Removes Claude Code settings.",
+          "recoveryZH": "废纸篓还原或手工重建配置。",
+          "recoveryEN": "Restore from Trash or recreate settings."
+        },
+        {
+          "match": "**/Preferences",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Claude 桌面端偏好设置。",
+          "costEN": "Removes Claude desktop preferences.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/machineid",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失本机机器标识。",
+          "costEN": "Removes local machine id.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建缓存。",
+          "costEN": "Discards rebuildable caches.",
+          "recoveryZH": "废纸篓还原或重新运行 CLI。",
+          "recoveryEN": "Restore from Trash or rerun the CLI.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "Cache",
+              "projects",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可重建。",
+          "costEN": "Drops GPU cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "Cache",
+              "projects",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码编译缓存，可重建。",
+          "costEN": "Drops code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "Cache",
+              "projects",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "Cache",
+              "projects",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/transcripts/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Claude Code 会话记录可能无法恢复。",
+          "costEN": "Claude Code session transcripts may become unrecoverable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/skills/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能包含自定义技能文件，删除后需重新安装或配置。",
+          "costEN": "May contain custom skill files; deletion may require reinstalling them.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/hooks/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能包含本地 hook 脚本，删除后自动化行为会丢失。",
+          "costEN": "May contain local hook scripts; automation behavior will be lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "projects/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "按项目保存的会话记录树，长期使用可膨胀到数十至数百 GB。它是历史而非可丢弃缓存，删除后对应项目的对话记录不可恢复。",
+          "costEN": "Per-project session transcript tree; can balloon to tens or hundreds of GB over time. This is history, not disposable cache—deleting it permanently loses those project conversations.",
+          "recoveryZH": "从废纸篓还原；请按项目逐项确认后再删。",
+          "recoveryEN": "Restore from Trash; review project by project before deleting."
+        },
+        {
+          "match": "**/file-history/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "文件编辑历史/快照，可用于回溯改动；可能很大但不是可随意丢弃的缓存。",
+          "costEN": "File-edit history/snapshots used to review or revert changes; can be large but is not throwaway cache.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/todos/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "会话任务列表状态，删除后正在进行的会话上下文可能丢失。",
+          "costEN": "Session todo/task state; deleting can drop context for in-flight sessions.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/shell-snapshots/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "shell 环境快照，用于复现会话；可能累积，删除前请确认无正在依赖的会话。",
+          "costEN": "Shell environment snapshots used to reproduce sessions; can accumulate—confirm no session depends on them before deleting.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/debug/**",
+          "type": "logs",
+          "risk": "review",
+          "costZH": "调试输出/诊断数据，通常可重建但可能含会话上下文，删除前请确认。",
+          "costEN": "Debug output/diagnostics; usually rebuildable but may embed session context—confirm before deleting.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/history*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "命令/会话历史记录，删除后无法恢复历史条目。",
+          "costEN": "Command/session history; deleted entries cannot be recovered.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能包含项目会话与本地状态，请逐项确认。",
+          "costEN": "May include project sessions/local state; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "codex",
+      "displayNameZH": "Codex",
+      "displayNameEN": "Codex",
+      "roots": [
+        {
+          "relative": ".codex",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Application Support/Codex",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/Codex",
+          "category": "caches"
+        },
+        {
+          "relative": "Library/Caches/com.openai.codex",
+          "category": "caches"
+        },
+        {
+          "relative": ".cache/codex-runtimes",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "codex-primary-runtime/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃已缓存的 Codex 执行沙箱主运行环境，下次按需重新提取。",
+          "costEN": "Drops cached Codex primary runtime environment; extracted on demand.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "Default",
+              "codex-primary-runtime"
+            ]
+          }
+        },
+        {
+          "match": "codex-runtime-*/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃已缓存的 Codex 执行沙箱运行环境，下次按需重新提取。",
+          "costEN": "Drops cached Codex runtime environments; extracted on demand.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "Default",
+              "codex-primary-runtime"
+            ]
+          }
+        },
+        {
+          "match": "plugins/**",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "已安装的 Codex 插件与依赖，删除后需重新拉取。",
+          "costEN": "Installed Codex plugins and dependencies; re-download required.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/WidevineCdm/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Widevine CDM 组件缓存，可自动更新。",
+          "costEN": "Drops Widevine CDM component cache.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/BrowserMetrics*",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃浏览器指标度量文件。",
+          "costEN": "Drops browser metrics spare file.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "codex-runtime-*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃已缓存的 Codex 执行沙箱运行环境，下次按需重新提取。",
+          "costEN": "Drops cached Codex runtime environments; extracted on demand.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "Default",
+              "codex-primary-runtime"
+            ]
+          }
+        },
+        {
+          "match": "**/auth.json",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 Codex 登录凭证，需要重新认证。",
+          "costEN": "Removes Codex auth credentials; re-authentication required.",
+          "recoveryZH": "废纸篓还原；否则重新登录。",
+          "recoveryEN": "Restore from Trash, otherwise sign in again."
+        },
+        {
+          "match": "**/config.toml",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Codex 配置。",
+          "costEN": "Removes Codex configuration.",
+          "recoveryZH": "废纸篓还原或手工重建配置。",
+          "recoveryEN": "Restore from Trash or recreate settings."
+        },
+        {
+          "match": "**/Default/Login Data*",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 Codex 登录凭证与会话钥匙。",
+          "costEN": "Removes Codex login credentials.",
+          "recoveryZH": "废纸篓还原；否则需重新登录。",
+          "recoveryEN": "Restore from Trash, otherwise sign in again."
+        },
+        {
+          "match": "**/Default/ClientCertificates",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失客户端证书。",
+          "costEN": "Removes client certificates.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/sessions/**",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "完整会话 rollout 记录（含对话内容），删除后不可恢复；v1 不允许选中清理。",
+          "costEN": "Full session rollout records (including conversation content); unrecoverable if deleted—not selectable for cleanup in v1.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/history.jsonl",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "命令/会话历史，删除后不可恢复；v1 不允许选中清理。",
+          "costEN": "Command/session history; unrecoverable if deleted—not selectable for cleanup in v1.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*.sqlite*",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "本地 SQLite 状态库（含 -wal/-shm），删除会破坏会话/状态。",
+          "costEN": "Local SQLite state DB (incl. -wal/-shm); deletion corrupts session/state.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*.db",
+          "type": "indexesHistory",
+          "risk": "protect",
+          "costZH": "本地状态数据库，删除会破坏会话/状态。",
+          "costEN": "Local state database; deletion corrupts session/state.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/log/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失可重建的诊断日志。",
+          "costEN": "Discards rebuildable diagnostic logs.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失可重建的诊断日志。",
+          "costEN": "Discards rebuildable diagnostic logs.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建缓存。",
+          "costEN": "Discards rebuildable cache.",
+          "recoveryZH": "废纸篓还原或重新运行 CLI。",
+          "recoveryEN": "Restore from Trash or rerun the CLI.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/tmp/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃临时文件，可重建。",
+          "costEN": "Discards temporary files; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/GraphiteDawnCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃渲染缓存，可重建。",
+          "costEN": "Drops renderer cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUPersistentCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 持久缓存，可重建。",
+          "costEN": "Drops GPU persistent cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可重建。",
+          "costEN": "Drops GPU cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃渲染/网络缓存，可重建。",
+          "costEN": "Drops renderer/network caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/component_crx_cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃组件缓存，可重建。",
+          "costEN": "Drops component cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/extensions_crx_cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃扩展缓存，可重建。",
+          "costEN": "Drops extensions cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/sentry/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃 Sentry 诊断缓存。",
+          "costEN": "Drops Sentry diagnostic cache.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "log",
+              "logs",
+              "cache",
+              "tmp",
+              "sessions",
+              "GraphiteDawnCache",
+              "Default",
+              "Default/Cache",
+              "Default/Local Storage"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能包含会话、历史或本地状态，请逐项确认后再删。",
+          "costEN": "May include sessions, history, or local state; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "ollama",
+      "displayNameZH": "Ollama",
+      "displayNameEN": "Ollama",
+      "roots": [
+        {
+          "relative": ".ollama",
+          "category": "local-models"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/models/**",
+          "type": "modelWeights",
+          "risk": "review",
+          "costZH": "删除模型需重新下载（可能数十到数百 GB）。",
+          "costEN": "Models must be re-downloaded (tens to hundreds of GB).",
+          "recoveryZH": "废纸篓还原，或重新 pull 模型。",
+          "recoveryEN": "Restore from Trash or re-pull the model."
+        },
+        {
+          "match": "**/config.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "丢失 Ollama 配置。",
+          "costEN": "Removes Ollama configuration.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能与模型或配置相关，请确认。",
+          "costEN": "May relate to models or config; confirm first.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "lmstudio",
+      "displayNameZH": "LM Studio",
+      "displayNameEN": "LM Studio",
+      "roots": [
+        {
+          "relative": ".cache/lm-studio",
+          "category": "caches"
+        },
+        {
+          "relative": "Library/Application Support/LM Studio",
+          "category": "app-support"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/*.gguf",
+          "type": "modelWeights",
+          "risk": "review",
+          "costZH": "删除 GGUF 模型需重新下载。",
+          "costEN": "GGUF models must be re-downloaded.",
+          "recoveryZH": "废纸篓还原或重新下载模型。",
+          "recoveryEN": "Restore from Trash or re-download."
+        },
+        {
+          "match": "**/models/**",
+          "type": "modelWeights",
+          "risk": "review",
+          "costZH": "删除本地模型资产。",
+          "costEN": "Removes local model assets.",
+          "recoveryZH": "废纸篓还原或重新下载。",
+          "recoveryEN": "Restore from Trash or re-download."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "请确认后再删。",
+          "costEN": "Confirm before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "huggingface",
+      "displayNameZH": "Hugging Face",
+      "displayNameEN": "Hugging Face",
+      "roots": [
+        {
+          "relative": ".cache/huggingface",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/hub/**",
+          "type": "modelWeights",
+          "risk": "review",
+          "costZH": "删除缓存模型需重新下载。",
+          "costEN": "Cached models must be re-downloaded.",
+          "recoveryZH": "废纸篓还原或重新下载。",
+          "recoveryEN": "Restore from Trash or re-download."
+        },
+        {
+          "match": "**/*",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "可能包含可重建缓存或模型分片。",
+          "costEN": "May include rebuildable caches or model shards.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "continue",
+      "displayNameZH": "Continue",
+      "displayNameEN": "Continue",
+      "roots": [
+        {
+          "relative": ".continue",
+          "category": "config"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "index",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Continue 索引根目录；重新索引会回填。",
+          "costEN": "Removes Continue index root; re-indexing refills disk.",
+          "recoveryZH": "废纸篓还原，或让 Continue 重新索引（可能回填）。",
+          "recoveryEN": "Restore from Trash, or let Continue re-index (may recreate).",
+          "mayRecreate": true
+        },
+        {
+          "match": "sessions",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Continue 会话列表与聊天记录可能无法恢复。",
+          "costEN": "Continue session list and chat history may become unrecoverable.",
+          "recoveryZH": "废纸篓还原；优先在 Continue 内清理会话。",
+          "recoveryEN": "Restore from Trash; prefer Continue's in-app session cleanup."
+        },
+        {
+          "match": "logs",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃 Continue 日志，可重建。",
+          "costEN": "Drops Continue logs; rebuildable.",
+          "recoveryZH": "废纸篓还原或重新运行后再生。",
+          "recoveryEN": "Restore from Trash, or relaunch to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-11",
+            "layoutMarkers": [
+              "logs",
+              "index",
+              ".utils"
+            ]
+          }
+        },
+        {
+          "match": "**/config.yaml",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Continue 本地配置与模型/规则设置。",
+          "costEN": "Removes Continue local config (models, rules, settings).",
+          "recoveryZH": "废纸篓还原或手工重建 config.yaml。",
+          "recoveryEN": "Restore from Trash or recreate config.yaml."
+        },
+        {
+          "match": "**/config.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Continue 旧版 JSON 配置。",
+          "costEN": "Removes legacy Continue JSON config.",
+          "recoveryZH": "废纸篓还原或手工重建 config.json。",
+          "recoveryEN": "Restore from Trash or recreate config.json."
+        },
+        {
+          "match": "**/config.ts",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Continue 可编程配置。",
+          "costEN": "Removes Continue programmatic config.ts.",
+          "recoveryZH": "废纸篓还原或手工重建。",
+          "recoveryEN": "Restore from Trash or recreate."
+        },
+        {
+          "match": "**/.env",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 API key 等密钥环境变量。",
+          "costEN": "Removes secrets such as API keys from .env.",
+          "recoveryZH": "废纸篓还原；否则重新填写密钥。",
+          "recoveryEN": "Restore from Trash, otherwise re-enter secrets."
+        },
+        {
+          "match": "**/sessions/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Continue 会话列表与聊天记录可能无法恢复。",
+          "costEN": "Continue session list and chat history may become unrecoverable.",
+          "recoveryZH": "废纸篓还原；优先在 Continue 内清理会话。",
+          "recoveryEN": "Restore from Trash; prefer Continue's in-app session cleanup."
+        },
+        {
+          "match": "**/index/lancedb/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除代码索引向量库；下次索引可能重新生成并再次占盘（已知可达数十 GB）。",
+          "costEN": "Removes code-index vectors; re-indexing may recreate and refill disk (known tens of GB).",
+          "recoveryZH": "废纸篓还原，或让 Continue 重新索引（可能回填）。",
+          "recoveryEN": "Restore from Trash, or let Continue re-index (may recreate).",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/index/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Continue 索引（含 index.sqlite / autocomplete 缓存）；重新索引会回填。",
+          "costEN": "Removes Continue indexes (index.sqlite / autocomplete cache); re-indexing refills disk.",
+          "recoveryZH": "废纸篓还原，或让 Continue 重新索引（可能回填）。",
+          "recoveryEN": "Restore from Trash, or let Continue re-index (may recreate).",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃 Continue 日志，可重建。",
+          "costEN": "Drops Continue logs; rebuildable.",
+          "recoveryZH": "废纸篓还原或重新运行后再生。",
+          "recoveryEN": "Restore from Trash, or relaunch to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-11",
+            "layoutMarkers": [
+              "logs",
+              "index",
+              ".utils"
+            ]
+          }
+        },
+        {
+          "match": "**/.utils/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Continue 工具缓存（含 chromium snapshots），可重建。",
+          "costEN": "Drops Continue utility caches (incl. chromium snapshots); rebuildable.",
+          "recoveryZH": "废纸篓还原或重新下载工具依赖。",
+          "recoveryEN": "Restore from Trash, or let Continue redownload utils.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-11",
+            "layoutMarkers": [
+              "logs",
+              "index",
+              ".utils"
+            ]
+          }
+        },
+        {
+          "match": "**/dev_data/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能丢失 Continue 本地开发/反馈遥测数据文件。",
+          "costEN": "May remove Continue local dev/feedback data files.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "cline",
+      "displayNameZH": "Cline",
+      "displayNameEN": "Cline",
+      "roots": [
+        {
+          "relative": ".cline",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Code - Insiders/User/globalStorage/saoudrizwan.claude-dev",
+          "category": "app-support"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "tasks",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Cline 任务对话与元数据可能无法恢复；优先用扩展内历史清理。",
+          "costEN": "Cline task conversations/metadata may become unrecoverable; prefer in-extension history cleanup.",
+          "recoveryZH": "废纸篓还原；或尝试命令面板 “Cline: Reconstruct Task History”（仅在 tasks 仍在时有效）。",
+          "recoveryEN": "Restore from Trash, or try “Cline: Reconstruct Task History” if task folders still exist."
+        },
+        {
+          "match": "cache",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Cline 可重建缓存。",
+          "costEN": "Drops rebuildable Cline cache.",
+          "recoveryZH": "废纸篓还原或重新运行扩展后回填。",
+          "recoveryEN": "Restore from Trash, or relaunch the extension to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-11",
+            "layoutMarkers": [
+              "cache",
+              "tasks"
+            ]
+          }
+        },
+        {
+          "match": "checkpoints",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Cline 检查点/影子 git 快照，可能丢失任务回退点。",
+          "costEN": "Removes Cline checkpoints/shadow-git snapshots; task rollback points may be lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "state",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除任务历史索引目录。",
+          "costEN": "Removes task-history index directory.",
+          "recoveryZH": "废纸篓还原，或运行 Reconstruct Task History。",
+          "recoveryEN": "Restore from Trash, or run Reconstruct Task History."
+        },
+        {
+          "match": "data",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能丢失 Cline CLI (~/.cline) 本地数据与历史。",
+          "costEN": "May remove Cline CLI (~/.cline) local data and history.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/tasks/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Cline 任务对话与元数据可能无法恢复；优先用扩展内历史清理。",
+          "costEN": "Cline task conversations/metadata may become unrecoverable; prefer in-extension history cleanup.",
+          "recoveryZH": "废纸篓还原；或尝试命令面板 “Cline: Reconstruct Task History”（仅在 tasks 仍在时有效）。",
+          "recoveryEN": "Restore from Trash, or try “Cline: Reconstruct Task History” if task folders still exist."
+        },
+        {
+          "match": "**/state/taskHistory*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除任务历史索引；tasks 文件夹仍在时可重建索引，但索引本身丢失。",
+          "costEN": "Removes task-history index; reconstructable if tasks/ folders remain, but the index itself is lost.",
+          "recoveryZH": "废纸篓还原，或运行 Reconstruct Task History。",
+          "recoveryEN": "Restore from Trash, or run Reconstruct Task History."
+        },
+        {
+          "match": "**/checkpoints/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Cline 检查点/影子 git 快照，可能丢失任务回退点。",
+          "costEN": "Removes Cline checkpoints/shadow-git snapshots; task rollback points may be lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Cline 可重建缓存。",
+          "costEN": "Drops rebuildable Cline cache.",
+          "recoveryZH": "废纸篓还原或重新运行扩展后回填。",
+          "recoveryEN": "Restore from Trash, or relaunch the extension to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-11",
+            "layoutMarkers": [
+              "cache",
+              "tasks"
+            ]
+          }
+        },
+        {
+          "match": "**/data/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能丢失 Cline CLI (~/.cline) 本地数据与历史。",
+          "costEN": "May remove Cline CLI (~/.cline) local data and history.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "xcode",
+      "displayNameZH": "Xcode",
+      "displayNameEN": "Xcode",
+      "roots": [
+        {
+          "relative": "Library/Developer/Xcode/DerivedData",
+          "category": "derived-data"
+        },
+        {
+          "relative": "Library/Developer/Xcode/Archives",
+          "category": "archives"
+        },
+        {
+          "relative": "Library/Developer/Xcode/iOS DeviceSupport",
+          "category": "device-support"
+        },
+        {
+          "relative": "Library/Developer/CoreSimulator/Devices",
+          "category": "simulators"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/DerivedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "下次构建会变慢并重建 DerivedData。",
+          "costEN": "Next builds rebuild DerivedData and run slower cold.",
+          "recoveryZH": "废纸篓还原，或重新编译生成。",
+          "recoveryEN": "Restore from Trash or rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "../UserData",
+              "ModuleCache.noindex",
+              "SymbolCache.noindex"
+            ]
+          }
+        },
+        {
+          "match": "**/Archives/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能丢失已归档的发布包。",
+          "costEN": "May remove archived release builds.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/iOS DeviceSupport/**",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "包含真机调试符号缓存（每版本数 GB）。删除后若无对应系统版本的真机重新连接提取符号，旧系统崩溃日志将无法符号化。",
+          "costEN": "Contains symbol caches from connected physical iOS devices (several GB per version). Deleting means old crash logs cannot be symbolicated unless that exact iOS version device is reconnected.",
+          "recoveryZH": "废纸篓还原，或重新连接对应系统版本的真机让 Xcode 自动提取。",
+          "recoveryEN": "Restore from Trash, or reconnect a device running that iOS version to let Xcode re-extract symbols."
+        },
+        {
+          "match": "**/Devices/**",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "模拟器数据可能丢失，需重新创建设备。",
+          "costEN": "Simulator data may be lost; recreate devices if needed.",
+          "recoveryZH": "废纸篓还原或在 Xcode 中重建模拟器。",
+          "recoveryEN": "Restore from Trash or recreate simulators in Xcode."
+        },
+        {
+          "match": "**/*",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "可能影响构建缓存。",
+          "costEN": "May affect build caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "antigravity",
+      "displayNameZH": "Antigravity",
+      "displayNameEN": "Antigravity",
+      "roots": [
+        {
+          "relative": ".gemini",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Application Support/Antigravity",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/com.google.antigravity",
+          "category": "caches"
+        },
+        {
+          "relative": "Library/Caches/Antigravity",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/fsCachedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃文件系统缓存数据，可重建。",
+          "costEN": "Drops filesystem cached data; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/update.zip",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃已下载的更新包，可重新下载。",
+          "costEN": "Drops downloaded update archive; re-downloadable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/pending/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃待处理的更新临时文件。",
+          "costEN": "Drops pending update temporary files.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/.credentials*",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 Antigravity 认证凭证。",
+          "costEN": "Removes Antigravity authentication credentials.",
+          "recoveryZH": "废纸篓还原；否则需重新登录认证。",
+          "recoveryEN": "Restore from Trash, otherwise re-authenticate."
+        },
+        {
+          "match": "**/jetski-standalone-oauth-token*",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 OAuth 登录令牌，需重新授权。",
+          "costEN": "Removes OAuth login token; re-authorization required.",
+          "recoveryZH": "废纸篓还原；否则重新登录。",
+          "recoveryEN": "Restore from Trash, otherwise sign in again."
+        },
+        {
+          "match": "**/.env",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 API key 与环境变量密钥配置。",
+          "costEN": "Removes environment variables and API keys from .env.",
+          "recoveryZH": "废纸篓还原或重新填写密钥。",
+          "recoveryEN": "Restore from Trash or re-enter secrets."
+        },
+        {
+          "match": "**/settings.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Antigravity 偏好设置。",
+          "costEN": "Removes Antigravity user settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/mcp_config.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 MCP 工具与服务配置。",
+          "costEN": "Removes MCP server and tool configuration.",
+          "recoveryZH": "废纸篓还原或重新配置 MCP。",
+          "recoveryEN": "Restore from Trash or reconfigure MCP."
+        },
+        {
+          "match": "**/installation_id",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失机器实例标识。",
+          "costEN": "Removes local installation identifier.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/brain/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "包含 Agent 对话轨迹、子智能体执行记录与生成产物；删除后会话上下文不可恢复。",
+          "costEN": "Contains agent conversation transcripts, subagent execution logs, and artifacts; deleting makes past sessions unrecoverable.",
+          "recoveryZH": "从废纸篓还原；请按需逐项确认后再清理。",
+          "recoveryEN": "Restore from Trash; review session by session before deleting."
+        },
+        {
+          "match": "**/conversations/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "包含完整对话历史记录，删除后无法查看历史会话。",
+          "costEN": "Contains full conversation history; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/annotations/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "会话批注与标签数据，删除后丢失会话上下文。",
+          "costEN": "Session annotations and tag metadata; context will be lost.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/knowledge/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "本地知识库索引，删除后需重新检索或构建。",
+          "costEN": "Local knowledge base indexes; re-indexing required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/skills/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义或已安装的技能扩展，删除后需重新安装。",
+          "costEN": "Custom or installed agent skills; reinstallation required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/mcp/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "本地 MCP 工具模式与配置定义。",
+          "costEN": "Local MCP tool schemas and definitions.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/rules/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义行为规则文件。",
+          "costEN": "Custom behavioral rules.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/sidecars/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "Sidecar 扩展组件定义与本地文件。",
+          "costEN": "Sidecar extension definitions and local files.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/projects/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "项目级上下文与会话配置，删除后会话记录不可恢复。",
+          "costEN": "Project-level context and session configs; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/scratch/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Agent 临时草稿与脚本，删除后无法找回草稿代码。",
+          "costEN": "Agent scratchpad scripts and drafts; draft code will be lost.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/crashes/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储诊断日志，可重建。",
+          "costEN": "Crash dumps and diagnostic logs are lost; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable renderer/network caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原或重启 Antigravity 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Antigravity to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃版本缓存，下次启动可能重新加载。",
+          "costEN": "Drops version caches; may re-download on next launch.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可重建。",
+          "costEN": "Drops GPU cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Dawn*Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 WebGPU/渲染缓存，可重建。",
+          "costEN": "Drops WebGPU/renderer caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码编译缓存，可重建。",
+          "costEN": "Drops compiled code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失运行诊断日志，可重建。",
+          "costEN": "Diagnostic logs are lost; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃报告与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Cookies*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Chromium Cookie 存储，可重建。",
+          "costEN": "Drops Chromium cookies; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/SharedStorage*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Shared Storage 缓存。",
+          "costEN": "Drops Shared Storage caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Shared Dictionary*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃压缩字典缓存。",
+          "costEN": "Drops Shared Dictionary caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/Network Persistent State*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃网络持久化状态，可重建。",
+          "costEN": "Drops network persistent state; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/TransportSecurity*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 HSTS 传输安全状态，可重建。",
+          "costEN": "Drops transport security state; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "antigravity",
+              "config",
+              "skills",
+              "brain",
+              "bin",
+              "installation_id",
+              "fsCachedData",
+              "Cache.db",
+              "pending",
+              "Default"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "可能包含会话状态、产物或本地配置，请逐项确认。",
+          "costEN": "May contain session state, artifacts, or local config; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "windsurf",
+      "displayNameZH": "Windsurf",
+      "displayNameEN": "Windsurf",
+      "roots": [
+        {
+          "relative": "Library/Application Support/Windsurf",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/Windsurf",
+          "category": "caches"
+        },
+        {
+          "relative": ".codeium",
+          "category": "config"
+        },
+        {
+          "relative": ".windsurf",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Application Support/Code/User/globalStorage/codeium.windsurf",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Cursor/User/globalStorage/codeium.windsurf",
+          "category": "app-support"
+        },
+        {
+          "relative": ".devin",
+          "category": "config"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/global_rules.md",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "Windsurf/Devin 全局规则配置，删除后所有工作区失去全局约束。",
+          "costEN": "Windsurf/Devin global rules configuration; deletion removes global constraints across all workspaces.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/memories/**",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "Cascade 自动生成的跨会话本地记忆，删除后不可恢复。",
+          "costEN": "Cascade auto-generated cross-session local memories; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/state.vscdb*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "聊天/历史索引库（含 .backup、-wal、-shm）。删除后会话可能无法恢复，且无法从工作区重建索引。",
+          "costEN": "Chat/history index DB (incl. .backup, -wal, -shm). Deleting may break session restore; unrecoverable from workspace DBs.",
+          "recoveryZH": "从废纸篓还原；优先使用 Windsurf 内置清理命令。",
+          "recoveryEN": "Restore from Trash; prefer Windsurf built-in cleanup."
+        },
+        {
+          "match": "**/snapshots/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "检查点/快照回退状态。删除后快照可能丢失；建议先退出 Windsurf 再处理。",
+          "costEN": "Checkpoint/snapshot restore state. Deleting may lose checkpoints; prefer quitting Windsurf before cleanup.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/*.pack",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "快照/检查点 .pack 数据块。删除后对应检查点可能丢失；建议先退出 Windsurf 再处理。",
+          "costEN": "Snapshot/checkpoint .pack chunks; deleting can drop rollback points; prefer quitting Windsurf first.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/cascade/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Cascade 历史对话记录与协作上下文，删除后历史会话不可恢复。",
+          "costEN": "Cascade conversation history and context; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/database/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Codeium 本地代码索引与嵌入数据库，删除后需重新索引。",
+          "costEN": "Codeium local code index and embeddings DB; re-indexing required if deleted.",
+          "recoveryZH": "从废纸篓还原或重新索引。",
+          "recoveryEN": "Restore from Trash or let Windsurf re-index.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/windsurf/bin/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "已下载的语言服务器与支持二进制程序。",
+          "costEN": "Downloaded language server and support binaries.",
+          "recoveryZH": "从废纸篓还原或重新下载。",
+          "recoveryEN": "Restore from Trash or let Windsurf re-download."
+        },
+        {
+          "match": "**/globalStorage/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能包含扩展状态与聊天索引，误删会影响会话恢复。",
+          "costEN": "May contain extension state and chat indexes; deletion can break session recovery.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/User/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "包含用户配置与历史相关数据，请逐项确认。",
+          "costEN": "Contains user profile and history-related data; review item by item.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Preferences",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Windsurf/Electron 偏好设置。",
+          "costEN": "Removes Windsurf/Electron preference settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/machineid",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失本机机器标识，可能影响登录态绑定。",
+          "costEN": "Removes the local machine id; may affect sign-in state.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/.credentials*",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失认证凭证，需重新登录。",
+          "costEN": "Removes authentication credentials; re-login required.",
+          "recoveryZH": "废纸篓还原；否则重新登录。",
+          "recoveryEN": "Restore from Trash, otherwise sign in again."
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "仅丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable renderer/network caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原；或重新打开 Windsurf 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Windsurf to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Windsurf 版本缓存，下次启动可能重新下载。",
+          "costEN": "Drops Windsurf version caches; next launch may re-download.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可能短暂变慢。",
+          "costEN": "Drops GPU cache; may slow briefly.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/Dawn*Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 WebGPU/渲染缓存，可重建。",
+          "costEN": "Drops WebGPU/renderer caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码缓存，可重建。",
+          "costEN": "Drops code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失诊断日志。",
+          "costEN": "Diagnostic logs are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/Cookies*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Chromium Cookie 存储。",
+          "costEN": "Drops Chromium cookies.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "windsurf"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "trae",
+      "displayNameZH": "Trae",
+      "displayNameEN": "Trae",
+      "roots": [
+        {
+          "relative": "Library/Application Support/Trae",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/Trae",
+          "category": "caches"
+        },
+        {
+          "relative": ".trae",
+          "category": "config"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/mcp.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Trae MCP 服务器配置。",
+          "costEN": "Removes Trae MCP server configuration.",
+          "recoveryZH": "从废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/user_rules",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Trae 全局用户自定义规则。",
+          "costEN": "Removes Trae global user rules.",
+          "recoveryZH": "从废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/state.vscdb*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "聊天/历史索引库（含 .backup、-wal、-shm）。删除后会话可能无法恢复。",
+          "costEN": "Chat/history index DB (incl. .backup, -wal, -shm). Deleting may break session restore.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/snapshots/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "检查点/快照回退状态。删除后快照可能丢失；建议先退出 Trae 再处理。",
+          "costEN": "Checkpoint/snapshot restore state. Deleting may lose checkpoints; prefer quitting Trae first.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/*.pack",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "快照/检查点 .pack 数据块。建议先退出 Trae 再处理。",
+          "costEN": "Snapshot/checkpoint .pack chunks; prefer quitting Trae first.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/globalStorage/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "可能包含扩展状态与聊天索引，误删会影响会话恢复。",
+          "costEN": "May contain extension state and chat indexes; deletion can break session recovery.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/skills/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "自定义或已安装技能，删除后需重新配置。",
+          "costEN": "Custom or installed skills; reconfiguration required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Preferences",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 Trae 偏好设置。",
+          "costEN": "Removes Trae preference settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/machineid",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失本机机器标识，可能影响登录态绑定。",
+          "costEN": "Removes the local machine id; may affect sign-in state.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "仅丢弃可重建的渲染/网络缓存，可能短暂变慢。",
+          "costEN": "Discards rebuildable renderer/network caches; may slow cold start briefly.",
+          "recoveryZH": "废纸篓还原；或重新打开 Trae 自动重建。",
+          "recoveryEN": "Restore from Trash, or relaunch Trae to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/CachedData/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Trae 版本缓存，下次启动可能重新下载。",
+          "costEN": "Drops Trae version caches; next launch may re-download.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可能短暂变慢。",
+          "costEN": "Drops GPU cache; may slow briefly.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/Dawn*Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 WebGPU/渲染缓存，可重建。",
+          "costEN": "Drops WebGPU/renderer caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码缓存，可重建。",
+          "costEN": "Drops code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失诊断日志。",
+          "costEN": "Diagnostic logs are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "User",
+              "Cache",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "roo-code",
+      "displayNameZH": "Roo Code",
+      "displayNameEN": "Roo Code",
+      "roots": [
+        {
+          "relative": ".roo",
+          "category": "config"
+        },
+        {
+          "relative": "Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Cursor/User/globalStorage/rooveterinaryinc.roo-cline",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Windsurf/User/globalStorage/rooveterinaryinc.roo-cline",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Trae/User/globalStorage/rooveterinaryinc.roo-cline",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Application Support/Code - Insiders/User/globalStorage/rooveterinaryinc.roo-cline",
+          "category": "app-support"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "tasks",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Roo Code 任务对话与元数据可能无法恢复；优先用扩展内历史清理。",
+          "costEN": "Roo Code task conversations/metadata may become unrecoverable; prefer in-extension history cleanup.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "cache",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Roo Code 可重建缓存。",
+          "costEN": "Drops rebuildable Roo Code cache.",
+          "recoveryZH": "废纸篓还原或重新运行扩展后回填。",
+          "recoveryEN": "Restore from Trash, or relaunch the extension to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "cache",
+              "tasks",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "checkpoints",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Roo Code 检查点快照，可能丢失任务回退点。",
+          "costEN": "Removes Roo Code checkpoints; task rollback points may be lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "state",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除任务历史索引目录。",
+          "costEN": "Removes task-history index directory.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "skills",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "包含自定义技能文件，删除后需重新配置。",
+          "costEN": "Custom skills directory; reconfiguration required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/tasks/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除后 Roo Code 任务对话与元数据可能无法恢复。",
+          "costEN": "Roo Code task conversations/metadata may become unrecoverable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/state/taskHistory*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除任务历史索引。",
+          "costEN": "Removes task-history index.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/checkpoints/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "删除 Roo Code 检查点快照，可能丢失任务回退点。",
+          "costEN": "Removes Roo Code checkpoints; task rollback points may be lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true
+        },
+        {
+          "match": "**/cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Roo Code 可重建缓存。",
+          "costEN": "Drops rebuildable Roo Code cache.",
+          "recoveryZH": "废纸篓还原或重新运行扩展后回填。",
+          "recoveryEN": "Restore from Trash, or relaunch the extension to refill.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "cache",
+              "tasks",
+              "skills"
+            ]
+          }
+        },
+        {
+          "match": "**/skills/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "包含自定义技能文件，删除后需重新配置。",
+          "costEN": "Custom skills; reconfiguration required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "opencode",
+      "displayNameZH": "OpenCode",
+      "displayNameEN": "OpenCode",
+      "roots": [
+        {
+          "relative": "Library/Application Support/ai.opencode.desktop",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/ai.opencode.desktop",
+          "category": "caches"
+        },
+        {
+          "relative": ".cache/opencode",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/models.json",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃模型注册表缓存，启动时自动更新拉取。",
+          "costEN": "Drops model registry cache; refetched on launch.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/packages/**",
+          "type": "disposableCache",
+          "risk": "review",
+          "costZH": "下载的扩展包与运行库，删除后需重新下载。",
+          "costEN": "Downloaded packages and libraries; re-download required if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/bin/**",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "下载的支持程序与二进制文件。",
+          "costEN": "Downloaded support tools and binaries.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Preferences",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "会丢失 OpenCode 偏好设置。",
+          "costEN": "Removes OpenCode preference settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or reconfigure."
+        },
+        {
+          "match": "**/.updaterId",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "丢失更新器标识。",
+          "costEN": "Removes updater identifier.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/opencode.settings",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "丢失 OpenCode 全局设置。",
+          "costEN": "Removes OpenCode global settings.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/drafts.sqlite*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "包含草稿与会话历史数据库，删除后草稿丢失。",
+          "costEN": "Drafts and session history database; drafts will be lost if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/opencode.workspace.*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "工作区状态与会话缓存文件。",
+          "costEN": "Workspace state and session data files.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/opencode.global.dat",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "全局会话与窗口状态数据。",
+          "costEN": "Global session and window state data.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/skills/**",
+          "type": "settingsConfig",
+          "risk": "review",
+          "costZH": "已安装技能文件。",
+          "costEN": "Installed skills files.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃可重建的渲染/网络缓存。",
+          "costEN": "Discards rebuildable renderer/network caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/GPUCache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 GPU 缓存，可重建。",
+          "costEN": "Drops GPU cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Dawn*Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 WebGPU/渲染缓存，可重建。",
+          "costEN": "Drops WebGPU/renderer caches; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Code Cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃代码缓存，可重建。",
+          "costEN": "Drops code cache; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失崩溃转储与诊断附件。",
+          "costEN": "Crash dumps and diagnostic attachments are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢失诊断日志。",
+          "costEN": "Diagnostic logs are lost.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "bin",
+              "packages",
+              "models.json",
+              "Cache",
+              "GPUCache",
+              "drafts.sqlite",
+              "Code Cache"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "zed",
+      "displayNameZH": "Zed",
+      "displayNameEN": "Zed",
+      "roots": [
+        {
+          "relative": "Library/Application Support/Zed",
+          "category": "app-support"
+        },
+        {
+          "relative": "Library/Caches/dev.zed.Zed",
+          "category": "caches"
+        },
+        {
+          "relative": "Library/Caches/Zed",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/settings.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "丢失 Zed 用户设置。",
+          "costEN": "Removes Zed user settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or recreate settings."
+        },
+        {
+          "match": "**/keymap.json",
+          "type": "settingsConfig",
+          "risk": "protect",
+          "costZH": "丢失 Zed 快捷键配置。",
+          "costEN": "Removes Zed keymap settings.",
+          "recoveryZH": "废纸篓还原或重新配置。",
+          "recoveryEN": "Restore from Trash or recreate keymap."
+        },
+        {
+          "match": "**/conversations/**",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Zed Assistant AI 对话历史记录，删除后无法恢复。",
+          "costEN": "Zed Assistant AI conversation history; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/db.sqlite*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Zed 工作区与会话 SQLite 数据库，删除会破坏历史状态。",
+          "costEN": "Zed workspace and session SQLite database; deletion disrupts history.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/logs/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃 Zed 诊断日志，可重建。",
+          "costEN": "Drops Zed diagnostic logs; rebuildable.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "logs",
+              "conversations",
+              "db.sqlite",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/cache/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Zed 可重建缓存。",
+          "costEN": "Drops rebuildable Zed caches.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "logs",
+              "conversations",
+              "db.sqlite",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/Crashpad/**",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃崩溃日志与转储文件。",
+          "costEN": "Drops crash dumps and diagnostic attachments.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "logs",
+              "conversations",
+              "db.sqlite",
+              "settings.json"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    },
+    {
+      "id": "aider",
+      "displayNameZH": "Aider",
+      "displayNameEN": "Aider",
+      "roots": [
+        {
+          "relative": ".aider",
+          "category": "config"
+        },
+        {
+          "relative": ".aider/caches",
+          "category": "caches"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "**/.env",
+          "type": "authCredentials",
+          "risk": "protect",
+          "costZH": "会丢失 API key 等密钥环境变量。",
+          "costEN": "Removes secrets such as API keys from .env.",
+          "recoveryZH": "废纸篓还原；否则重新填写密钥。",
+          "recoveryEN": "Restore from Trash, otherwise re-enter secrets."
+        },
+        {
+          "match": "**/*chat.history*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Aider 聊天与会话历史记录，删除后无法找回。",
+          "costEN": "Aider chat and session history; unrecoverable if deleted.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/*input.history*",
+          "type": "indexesHistory",
+          "risk": "review",
+          "costZH": "Aider 命令行输入历史记录。",
+          "costEN": "Aider command line input history.",
+          "recoveryZH": "从废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        },
+        {
+          "match": "**/caches/**",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Aider 全局提示词与模型响应缓存，下次按需重新生成。",
+          "costEN": "Drops Aider app-wide prompt and model response caches; regenerated on demand.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "caches",
+              "analytics.json",
+              ".aider.conf.yml",
+              "chat.history.md",
+              "input.history"
+            ]
+          }
+        },
+        {
+          "match": "**/*tags.cache*",
+          "type": "disposableCache",
+          "risk": "safe",
+          "costZH": "丢弃 Aider 代码 tags/ctags 索引缓存，下次运行时会自动重新构建。",
+          "costEN": "Drops Aider code tags/ctags index cache; automatically rebuilds on next run.",
+          "recoveryZH": "废纸篓还原或重新运行 Aider 自动重建。",
+          "recoveryEN": "Restore from Trash, or rerun Aider to rebuild.",
+          "mayRecreate": true,
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "caches",
+              "analytics.json",
+              ".aider.conf.yml",
+              "chat.history.md",
+              "input.history"
+            ]
+          }
+        },
+        {
+          "match": "**/analytics.json",
+          "type": "logs",
+          "risk": "safe",
+          "costZH": "丢弃本地分析诊断统计文件。",
+          "costEN": "Drops local analytics and diagnostic stats file.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash.",
+          "verifiedAgainst": {
+            "verifiedAt": "2026-08-31",
+            "layoutMarkers": [
+              "caches",
+              "analytics.json",
+              ".aider.conf.yml",
+              "chat.history.md",
+              "input.history"
+            ]
+          }
+        },
+        {
+          "match": "**/*",
+          "type": "unknown",
+          "risk": "review",
+          "costZH": "未匹配具体规则，请确认后再删。",
+          "costEN": "No specific rule matched; review before deleting.",
+          "recoveryZH": "废纸篓还原。",
+          "recoveryEN": "Restore from Trash."
+        }
+      ]
+    }
+  ]
+}

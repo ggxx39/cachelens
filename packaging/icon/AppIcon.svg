@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- CacheLens app icon (128px and up). A biconvex lens resolves one
+       undifferentiated pile of cache into three labelled verdicts:
+       Safe, Review, Protect. Bar lengths differ because the product reports a
+       measured composition, not a decoration. Deliberately not a magnifier
+       (generic search), not a broom (generic cleaner), not purple AI slop.
+       Brand palette matches website/tokens.css and docs/design/brand-mark.md.
+       64px and below use AppIcon-small.svg instead; both are assembled into
+       AppIcon.icns by packaging/icon/build-icns.sh. -->
+  <defs>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4b81ef"/>
+      <stop offset="0.55" stop-color="#2f66d6"/>
+      <stop offset="1" stop-color="#1f47a6"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.24"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0.1" x2="1" y2="0.9">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#f1f6ff"/>
+      <stop offset="1" stop-color="#c3d9f9"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#plate)"/>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#sheen)"/>
+
+  <!-- the lens -->
+  <path d="M286 206C176 372 176 652 286 818C396 652 396 372 286 206Z" fill="url(#glass)"/>
+  <path d="M286 206C176 372 176 652 286 818" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="20"/>
+
+  <!-- the verdicts, refracted out of the lens -->
+  <g stroke-width="112" stroke-linecap="round" fill="none">
+    <path d="M470 348L800 322" stroke="#35c495"/>
+    <path d="M470 512H856" stroke="#f5b63e"/>
+    <path d="M470 676L720 702" stroke="#de7a82"/>
+  </g>
+</svg>

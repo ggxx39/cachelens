@@ -1,0 +1,12 @@
+{
+  "name": "cachelens-appicon",
+  "private": true,
+  "type": "module",
+  "description": "Builds packaging/icon/AppIcon.icns from the SVG sources",
+  "scripts": {
+    "build": "node build-icns.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Hardened Runtime & Zero-Network Local Security Policy -->
+    <!-- com.apple.security.network.client is intentionally omitted (FALSE) to guarantee zero outbound connections -->
+    <!-- com.apple.security.network.server is intentionally omitted (FALSE) -->
+    
+    <!-- User selected files read/write for custom cache selection if needed -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    
+    <!-- Retain local-only execution without JIT / unsigned memory -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <false/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <false/>
+</dict>
+</plist>

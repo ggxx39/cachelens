@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- CacheLens app icon, 64px and below. Same mark as AppIcon.svg, drawn for
+       tiny raster sizes: larger plate, flat fills, thicker bars, and wider
+       gaps so the lens and the three verdict bars survive downsampling.
+       Assembled into AppIcon.icns by packaging/icon/build-icns.sh. -->
+  <defs>
+    <linearGradient id="plateSmall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4278e8"/>
+      <stop offset="1" stop-color="#2154b8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="52" y="52" width="920" height="920" rx="208" fill="url(#plateSmall)"/>
+
+  <path d="M272 168C124 364 124 660 272 856C420 660 420 364 272 168Z" fill="#ffffff"/>
+
+  <g stroke-width="150" stroke-linecap="round" fill="none">
+    <path d="M528 316H816" stroke="#35c495"/>
+    <path d="M528 512H864" stroke="#f5b63e"/>
+    <path d="M528 708H736" stroke="#de7a82"/>
+  </g>
+</svg>
